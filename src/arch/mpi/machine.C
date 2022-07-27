@@ -143,7 +143,7 @@ CpvStaticDeclare(double, projTraceStart);
  * if not specified by the user.
  */
 #ifndef MPI_POST_RECV
-#  define MPI_POST_RECV 0
+#  define MPI_POST_RECV 1
 #endif
 
 /* Making those parameters configurable for testing them easily */
