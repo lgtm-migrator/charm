@@ -14,7 +14,7 @@ jobs:
     - name: install-prerequisites
       run: |
         set -x
-        [[ -z ${{ secrets.NAMD_CI_USERNAME_TOKENx }} ]] && exit 78
+        [[ -z "${{ secrets.NAMD_CI_USERNAME_TOKENx }}" ]] && exit 78
         sudo apt-get update
         sudo apt-get -y install sfftw-dev
         # test build without Fortran support
