@@ -7,14 +7,13 @@ jobs:
   # Since NAMD requires a secret to download its source from Gitlab, CI builds from outside PPl
   # always fail in this test since the secret is not available.
   build-and-test-namd:
+    if: secrets.NAMD_CI_USERNAME_TOKEN
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
     - name: install-prerequisites
       run: |
-        set -x
-        [[ -z "${{ secrets.NAMD_CI_USERNAME_TOKENx }}" ]] && exit 78
         sudo apt-get update
         sudo apt-get -y install sfftw-dev
         # test build without Fortran support
