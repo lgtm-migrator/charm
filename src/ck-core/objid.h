@@ -2,6 +2,7 @@
 #define OBJID_H
 
 #include "charm.h"
+#include "conv-header.h"
 #include "converse.h"
 #include "pup.h"
 
@@ -65,8 +66,8 @@ class ObjID {
             if ( eid > (HOME_MASK | ELEMENT_MASK) ) {
               CmiPrintf("\nError> ObjID ran out of element bits, please try re-building "
                         "Charm++ with a lower number of collection bits using "
-                        "-DCMK_OBJID_COLLECTION_BITS=N, such that 3<N<%d (eid: %llx, valid limit: %llx (H%u + E%u = %u bits))\n",
-                        COLLECTION_BITS, eid, (HOME_MASK | ELEMENT_MASK), HOME_BITS, ELEMENT_BITS, (HOME_BITS + ELEMENT_BITS));
+                        "-DCMK_OBJID_COLLECTION_BITS=N, such that 3<N<%d (eid: %" PRIx64 ", valid limit: %" PRIx64 " (H%u + E%u = %u bits))\n",
+                        COLLECTION_BITS, eid, (CmiUInt8)(HOME_MASK | ELEMENT_MASK), HOME_BITS, ELEMENT_BITS, (HOME_BITS + ELEMENT_BITS));
               // We don't generally recommend collections bits <= 3 though it's possible
               CmiAbort("Attempting to create too many chare elements!");
             }

@@ -537,8 +537,8 @@ public:
       const CmiUInt8 id = (homePe(idx) << CMK_OBJID_ELEMENT_BITS) + compressor->compress(idx);
       CmiEnforceMsg(
           id <= (ck::ObjID::masks::HOME_MASK | ck::ObjID::masks::ELEMENT_MASK),
-          "\nid is too big! (id: %llx, max: %llx)", id,
-          (ck::ObjID::masks::HOME_MASK | ck::ObjID::masks::ELEMENT_MASK));
+          "\nid is too big! (id: %" PRIx64 ", max: %" PRIx64 ")", id,
+          (CmiUInt8)(ck::ObjID::masks::HOME_MASK | ck::ObjID::masks::ELEMENT_MASK));
       return id;
       //return (homePe(idx) << CMK_OBJID_ELEMENT_BITS) + compressor->compress(idx);
     }
@@ -567,8 +567,8 @@ public:
       id = (homePe(idx) << CMK_OBJID_ELEMENT_BITS) + compressor->compress(idx);
       CmiEnforceMsg(
           id <= (ck::ObjID::masks::HOME_MASK | ck::ObjID::masks::ELEMENT_MASK),
-          "\nid is too big! (id: %llx, max: %llx)", id,
-          (ck::ObjID::masks::HOME_MASK | ck::ObjID::masks::ELEMENT_MASK));
+          "\nid is too big! (id: %" PRIx64 ", max: %" PRIx64 ")", id,
+          (CmiUInt8)(ck::ObjID::masks::HOME_MASK | ck::ObjID::masks::ELEMENT_MASK));
       return true;
     }
     else
