@@ -13,6 +13,8 @@ jobs:
     - uses: actions/checkout@v2
     - name: install-prerequisites
       run: |
+        set -x
+        [[ -z ${{ secrets.NAMD_CI_USERNAME_TOKEN }} ]] && exit 78
         sudo apt-get update
         sudo apt-get -y install sfftw-dev
         # test build without Fortran support
