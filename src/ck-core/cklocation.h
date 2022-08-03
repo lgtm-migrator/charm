@@ -9,6 +9,8 @@ array proxies, or the details of element creation (see ckarray.h).
 #ifndef __CKLOCATION_H
 #define __CKLOCATION_H
 
+#include "converse.h"
+#include "objid.h"
 #include <unordered_map>
 struct IndexHasher
 {
@@ -528,7 +530,17 @@ public:
     if (compressor)
     {
       // TODO: If number of PEs doesn't fit into number of home bits, this will overflow
-      return (homePe(idx) << CMK_OBJID_ELEMENT_BITS) + compressor->compress(idx);
+      const auto home = homePe(idx);
+      CmiEnforceMsg(home <= ((1ULL << CMK_OBJID_HOME_BITS) - 1),
+                    "\nhome is too big! (home: %x, max: %llx)", home,
+                    ((1ULL << CMK_OBJID_HOME_BITS) - 1));
+      const CmiUInt8 id = (homePe(idx) << CMK_OBJID_ELEMENT_BITS) + compressor->compress(idx);
+      CmiEnforceMsg(
+          id <= (ck::ObjID::masks::HOME_MASK | ck::ObjID::masks::ELEMENT_MASK),
+          "\nid is too big! (id: %llx, max: %llx)", id,
+          (ck::ObjID::masks::HOME_MASK | ck::ObjID::masks::ELEMENT_MASK));
+      return id;
+      //return (homePe(idx) << CMK_OBJID_ELEMENT_BITS) + compressor->compress(idx);
     }
     else
     {
@@ -545,7 +557,18 @@ public:
     if (compressor)
     {
       // TODO: If number of PEs doesn't fit into number of home bits, this will overflow
+      //id = (homePe(idx) << CMK_OBJID_ELEMENT_BITS) + compressor->compress(idx);
+      //return true;
+
+      const auto home = homePe(idx);
+      CmiEnforceMsg(home <= ((1ULL << CMK_OBJID_HOME_BITS) - 1),
+                    "\nhome is too big! (home: %x, max: %llx)", home,
+                    ((1ULL << CMK_OBJID_HOME_BITS) - 1));
       id = (homePe(idx) << CMK_OBJID_ELEMENT_BITS) + compressor->compress(idx);
+      CmiEnforceMsg(
+          id <= (ck::ObjID::masks::HOME_MASK | ck::ObjID::masks::ELEMENT_MASK),
+          "\nid is too big! (id: %llx, max: %llx)", id,
+          (ck::ObjID::masks::HOME_MASK | ck::ObjID::masks::ELEMENT_MASK));
       return true;
     }
     else
