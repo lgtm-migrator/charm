@@ -399,7 +399,13 @@ namespace ck {
         unsigned int thisDim = shorts ? idx.indexShorts[i] : idx.index[i];
         CkAssert(thisDim < (1UL << numBits));
         eid = (eid << numBits) | thisDim;
+        CmiPrintf("compress:" "i=%u numBits=%u thisDim=%u eid=%llu\n", i, numBits, thisDim, eid);
       }
+
+      CmiEnforceMsg(eid <= CMK_OBJID_ELEMENT_BITS,
+                    "\neid is too big! (eid: %llx, max: %llx)", eid,
+                    CMK_OBJID_ELEMENT_BITS);
+
       return eid;
     }
 
