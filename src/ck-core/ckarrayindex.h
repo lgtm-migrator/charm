@@ -402,8 +402,8 @@ namespace ck {
         CmiPrintf("compress:" "i=%u numBits=%u thisDim=%u eid=%" PRIu64 "\n", i, numBits, thisDim, eid);
       }
 
-      CmiEnforceMsg(eid <= CMK_OBJID_ELEMENT_BITS,
-                    "\neid is too big! (eid: %" PRIx64 " , max: %" PRIx64 ")", eid,
+      CmiAssertMsg(eid <= CMK_OBJID_ELEMENT_BITS,
+                    "\neid is too big! (eid: %" PRIx64 ", max: %" PRIx64 ")", eid,
                     (CmiUInt8)CMK_OBJID_ELEMENT_BITS);
 
       return eid;
