@@ -24,7 +24,7 @@
 #define CMK_TRAM_OVERALLOCATION_FACTOR 4
 
 // #define CMK_TRAM_CACHE_ARRAY_METADATA // only works for 1D array clients
-// #define CMK_TRAM_VERBOSE_OUTPUT
+#define CMK_TRAM_VERBOSE_OUTPUT 1
 
 #define TRAM_BROADCAST (-100)
 
@@ -315,10 +315,13 @@ public:
       cntFinished_[msgType]++;
       cntMsgExpected_[msgType] += finalCount;
 #ifdef CMK_TRAM_VERBOSE_OUTPUT
-      CkPrintf("[%d] received msgType: %d finalCount: %d cntFinished: %d "
+      if (CkMyPe() == 1)
+      {
+        CkPrintf("[%d] received msgType: %d finalCount: %d cntFinished: %d "
                "cntMsgExpected: %d cntMsgReceived: %d\n", myIndex_, msgType,
                finalCount, cntFinished_[msgType], cntMsgExpected_[msgType],
                cntMsgReceived_[msgType]);
+      }
 #endif
     }
     if (stagedCompletionStarted_) {
@@ -330,7 +333,10 @@ public:
     //if so, it resets the periodic flushing
     if (myCompletionStatus_.stageIndex == finalCompletionStage) { //has already completed all stages
 #ifdef CMK_TRAM_VERBOSE_OUTPUT
-      CkPrintf("[%d] All done. Reducing to final callback ...\n", myIndex_);
+      if (CkMyPe() == 1)
+      {
+        CkPrintf("[%d] All done. Reducing to final callback ...\n", myIndex_);
+      }
 #endif
       CkAssert(numDataItemsBuffered_ == 0);
       isPeriodicFlushEnabled_ = false;
@@ -353,11 +359,14 @@ public:
     while (cntFinished_[currentStage] == myCompletionStatus_.numContributors &&
            cntMsgExpected_[currentStage] == cntMsgReceived_[currentStage]) {
 #ifdef CMK_TRAM_VERBOSE_OUTPUT
-      CkPrintf("[%d] stage completion finished stage %d, received contributions"
+      if (CkMyPe() == 1)
+      {
+        CkPrintf("[%d] stage completion finished stage %d, received contributions"
                " from %d PEs, cntMsgExpected: %d cntMsgReceived: %d\n",
                myIndex_,  myCompletionStatus_.stageIndex,
                cntFinished_[currentStage], cntMsgExpected_[currentStage],
                cntMsgReceived_[currentStage]);
+      }
 #endif
       myRouter_.updateCompletionProgress(myCompletionStatus_);
       if (checkAllStagesCompleted()) { //has already completed all stages
@@ -432,10 +441,13 @@ ctorHelper(int maxNumDataItemsBuffered, int numDimensions,
   detectorLocalObj_ = NULL;
 
 #ifdef CMK_TRAM_VERBOSE_OUTPUT
-  CkPrintf("[%d] Instance initialized. Buffer size: %d, Capacity: %d, "
+  if (CkMyPe() == 1)
+  {
+    CkPrintf("[%d] Instance initialized. Buffer size: %d, Capacity: %d, "
            "Yield: %d, Flush period: %f, Maximum number of buffers: %d\n",
            myIndex_, bufferSize_, maxNumDataItemsBuffered_, yieldFlag_,
            progressPeriodInMs_, maxNumBuffers);
+  }
 #endif
 
   useStagedCompletion_ = false;
@@ -474,14 +486,20 @@ sendMeshStreamerMessage(MeshStreamerMessageV *destinationBuffer,
   bool personalizedMessage = myRouter_.isMessagePersonalized(dimension);
   if (personalizedMessage) {
 #ifdef CMK_TRAM_VERBOSE_OUTPUT
-    CkPrintf("[%d] sending to %d\n", myIndex_, destinationIndex);
+    if (CkMyPe() == 1)
+    {
+      CkPrintf("[%d] sending to %d\n", myIndex_, destinationIndex);
+    }
 #endif
     this->thisProxy[destinationIndex].receiveAtDestination(destinationBuffer);
   }
   else {
 #ifdef CMK_TRAM_VERBOSE_OUTPUT
-    CkPrintf("[%d] sending intermediate to %d\n",
+    if (CkMyPe() == 1)
+    {
+      CkPrintf("[%d] sending intermediate to %d\n",
              myIndex_, destinationIndex);
+    }
 #endif
     this->thisProxy[destinationIndex].receiveAlongRoute(destinationBuffer);
   }
@@ -807,10 +825,13 @@ receiveAlongRoute(MeshStreamerMessageV *msg) {
   }
 
 #ifdef CMK_TRAM_VERBOSE_OUTPUT
-      envelope *env = UsrToEnv(msg);
-      CkPrintf("[%d] received along route from %d %d items finalMsgCount: %d"
-               " msgType: %d\n", myIndex_, env->getSrcPe(),
-               msg->numDataItems, msg->finalMsgCount, msg->msgType);
+  if (CkMyPe() == 1)
+  {
+    envelope *env = UsrToEnv(msg);
+    CkPrintf("[%d] received along route from %d %d items finalMsgCount: %d"
+             " msgType: %d\n", myIndex_, env->getSrcPe(),
+             msg->numDataItems, msg->finalMsgCount, msg->msgType);
+  }
 #endif
 
   if (useStagedCompletion_) {
@@ -890,8 +911,11 @@ flushDimension(int dimension, bool sendMsgCounts) {
   std::vector<MeshStreamerMessageV *>
     &messageBuffers = dataBuffers_[dimension];
 #ifdef CMK_TRAM_VERBOSE_OUTPUT
-  CkPrintf("[%d] flushDimension: %d, num buffered: %d, sendMsgCounts: %d\n",
+  if (CkMyPe() == 1)
+  {
+    CkPrintf("[%d] flushDimension: %d, num buffered: %d, sendMsgCounts: %d\n",
            myIndex_, dimension, numDataItemsBuffered_, sendMsgCounts);
+  }
 #endif
 
   for (int j = 0; j < messageBuffers.size(); j++) {
@@ -957,6 +981,11 @@ void periodicProgressFunction(void *MeshStreamerObj, double time) {
 
   MeshStreamer<dtype, RouterType> *properObj =
     static_cast<MeshStreamer<dtype, RouterType>*>(MeshStreamerObj);
+
+  if (CkMyPe() == 1)
+  {
+    CkError("[%d, %f] periodicProgressFunction\n", CkMyPe(), CkWallTimer());
+  }
 
   if (properObj->isPeriodicFlushEnabled()) {
     properObj->flushIfIdle();
@@ -1052,10 +1081,13 @@ private:
 
     if (this->useStagedCompletion_) {
 #ifdef CMK_TRAM_VERBOSE_OUTPUT
-      envelope* env = UsrToEnv(msg);
-      CkPrintf("[%d] received at dest from %d %d items finalMsgCount: %d"
-               " msgType: %d\n", this->myIndex_, env->getSrcPe(),
-               msg->numDataItems, msg->finalMsgCount, msg->msgType);
+      if (CkMyPe() == 1)
+      {
+        envelope* env = UsrToEnv(msg);
+        CkPrintf("[%d] received at dest from %d %d items finalMsgCount: %d"
+                 " msgType: %d\n", this->myIndex_, env->getSrcPe(),
+                 msg->numDataItems, msg->finalMsgCount, msg->msgType);
+      }
 #endif
       this->markMessageReceived(msg->msgType, msg->finalMsgCount);
     } else if (this->useCompletionDetection_) {
