@@ -22,7 +22,7 @@ jobs:
         sudo apt-get install libevent-dev libhwloc-dev
     - name: build-ucx
       run: |
-        git clone --recursive --depth 1 --shallow-submodules --branch v1.9.0 https://github.com/openucx/ucx.git
+        git clone --recursive --depth 1 --shallow-submodules --branch v1.13.1 https://github.com/openucx/ucx.git
         cd ucx
         ./autogen.sh
         ./contrib/configure-release --disable-numa --without-java
